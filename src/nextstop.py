@@ -89,7 +89,7 @@ def getAllStationsUrls(opener, transport, line):
   return stations
 
 # Returns the time at a specific station
-def getStationTimes(soup):
+def getStationTimes(soup, station):
   divs = soup.findAll('div')
   currentdest = ""
   times = []
@@ -98,7 +98,8 @@ def getStationTimes(soup):
       cl = div['class'][0]
       if re.search(r'schmsg', cl):
         if div.b is not None:
-          times.append((cleanString(div.b.string), cleanString(currentdest)))
+          times.append((cleanString(div.b.string),
+            cleanString(currentdest), station))
       if re.search(r'bg', cl):
         m = re.search(r'([-_a-zA-Z-9]+[^>]*[-_a-zA-Z-9]+)', str(div.string))
         if m is not None:
@@ -116,7 +117,7 @@ def getNextStopsAtStation(opener, transport, line, station):
     if searchNameInData(station, key):
       page = getInfoPage(url, opener)
       soup = bs4.BeautifulSoup(page)
-      results += getStationTimes(soup)
+      results += getStationTimes(soup, key)
   return results
 
 def extractInformation(opener,
@@ -125,9 +126,9 @@ def extractInformation(opener,
     station):
   if station != "":
     times = getNextStopsAtStation(opener, transport, line, station)
-    for time, direction in times:
+    for time, direction, stationname in times:
       print("Next %s %s at %s going to %s at %s" %
-          (transport, line, station, direction, time))
+          (transport, line, stationname, direction, time))
   else:
     stations = getAllStations(opener, transport, line)
     if len(stations) > 0:

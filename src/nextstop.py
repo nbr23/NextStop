@@ -5,6 +5,34 @@ import sys
 import ratp
 
 
+def extractInformation(transport,
+    line,
+    station):
+  if station is not None and station != "":
+    times = ratp.getNextStopsAtStation(transport, line, station)
+    stops = ""
+    for time, direction, stationname in times:
+      station = stationname
+      stops += "\n— " + time+" direction "+direction+" ;"
+    if len(stops) > 0:
+      print("Prochains passages du %s ligne %s à l'arrêt %s : %s" %
+          (transport, line, stationname, stops))
+    else:
+      print("La station `%s' ne semble pas exister sur le %s ligne %s."
+          % (station, transport, line))
+  else:
+    stations = ratp.getAllStations(transport, line)
+    if len(stations) > 0:
+      s = ""
+      for name in stations:
+        s += "\n— " + name + " ;"
+      print("Stations : %s" % (s))
+      return 0
+    else:
+      print("Aucune station trouvée.")
+
+
+
 def printUsage(name):
   print("Usage: %s -t transport_type -l line [-s station] " % name)
   print("\t-t transport_type: transportation type: bus, rer, tram, "
@@ -37,7 +65,7 @@ def main():
     printUsage(sys.argv[0])
     return 1
 
-  return ratp.extractInformation(type_transp, line, station)
+  return extractInformation(type_transp, line, station)
 
 if __name__ == "__main__":
       sys.exit(main())

@@ -71,7 +71,7 @@ def searchNameInData(name, data):
       re.IGNORECASE)
 
 # Returns a hashtable of all the stations of the line in both directions
-def getAllStations(msg, transport, line):
+def getAllStations(transport, line):
   page = getPage('/siv/schedule?stationname=*&reseau=%s&linecode=%s'
       % (transport, line))
   soup = bs4.BeautifulSoup(page)
@@ -86,7 +86,6 @@ def getAllStations(msg, transport, line):
   if len(directions) > 0:
     stations = {}
     for name in directions:
-      msg.send_chn("%s: Direction: %s." % (msg.nick, name))
       page = getPage("/siv/"+directions[name])
       soup = bs4.BeautifulSoup(page)
       links = soup.findAll('a')
@@ -106,33 +105,3 @@ def getNextStopsAtStation(transport, line, station):
       soup = bs4.BeautifulSoup(page)
       results += getStationTimes(soup, key)
   return results
-
-
-
-def extractInformation(transport,
-    line,
-    station):
-  if station is not None and station != "":
-    times = getNextStopsAtStation(transport, line, station)
-    stops = ""
-    for time, direction, stationname in times:
-      station = stationname
-      stops += time+" direction "+direction+"; "
-    if len(stops) > 0:
-      print("Prochains passages du %s ligne %s à l'arrêt %s: %s" %
-          (transport, line, stationname, stops))
-    else:
-      print("La station `%s' ne semble pas exister sur le %s ligne %s."
-          % (station, transport, line))
-  else:
-    stations = getAllStations(msg, transport, line)
-    if len(stations) > 0:
-      s = ""
-      for name in stations:
-        s += name + "; "
-      print("Stations: %s." % (s))
-      return 0
-    else:
-      print("Aucune station trouvée.")
-
-

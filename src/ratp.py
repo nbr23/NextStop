@@ -5,57 +5,20 @@ import http.cookiejar, urllib.request
 import bs4
 from unidecode import unidecode
 
-def getInfoPage (page):
-  conn = http.client.HTTPConnection("wap.ratp.fr", timeout=15)
+def getPage (page):
+  conn = http.client.HTTPConnection("wap.ratp.fr", timeout=10)
   #We need a "proper" UA otherwise ratp.fr gives us a boggus page
   conn.request("GET", page, "",
       {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64; rv:10.0.4) "
         + "Gecko/20100101 Firefox/10.0.4 Iceweasel/10.0.4"})
   res = conn.getresponse()
-  data = str(res.read())
+  data = res.read()
   conn.close()
   return data
 
-# Removes bizarre things from strings
-def cleanString(mystr):
-  mystr = re.sub(r'\\\'', '\'', mystr)
-  mystr = re.sub(r'[-]', ' ', mystr)
-  mystr = re.sub(r'[ ][ ]+', ' ', mystr)
-  return unidecode(mystr)
-
-def searchNameInData(name, data):
-  return re.search(r'%s' % cleanString(name),
-      cleanString(data),
-      re.IGNORECASE)
-
-# Returns a hashtable of all the stations of the line in both directions
-def getAllStations(transport, line):
-  page = getInfoPage("/siv/schedule?stationname=*&reseau=%s&linecode=%s"
-      % (transport, line))
-  soup = bs4.BeautifulSoup(page)
-  stations = {}
-  directions = {}
-  links = soup.findAll('a')
-  for link in links:
-    if re.search(r'directionsens=', str(link)):
-      directions[cleanString(link.string)] = link['href']
-    elif re.search(r'stationid=', str(link)):
-      stations[cleanString(link.string)] = link['href']
-  if len(directions) > 0:
-    stations = {}
-    for name in directions:
-      print("Direction: %s", name)
-      page = getInfoPage("siv" + directions[name])
-      soup = bs4.BeautifulSoup(page)
-      links = soup.findAll('a')
-      for link in links:
-        if re.search(r'stationid=', str(link)):
-          stations[cleanString(link.string)] = link['href']
-  return stations
-
 # Returns a list of all the stations of the line in both directions
 def getAllStationsUrls(transport, line):
-  page = getInfoPage("/siv/schedule?stationname=*&reseau=%s&linecode=%s"
+  page = getPage("/siv/schedule?stationname=*&reseau=%s&linecode=%s"
       % (transport, line))
   soup = bs4.BeautifulSoup(page)
   stations = []
@@ -69,7 +32,7 @@ def getAllStationsUrls(transport, line):
   if len(directions) > 0:
     stations = []
     for name in directions:
-      page = getInfoPage("/siv/" + directions[name])
+      page = getPage("/siv/"+directions[name])
       soup = bs4.BeautifulSoup(page)
       links = soup.findAll('a')
       for link in links:
@@ -77,7 +40,6 @@ def getAllStationsUrls(transport, line):
           stations.append((cleanString(link.string), link['href']))
   return stations
 
-# Returns the time at a specific station
 def getStationTimes(soup, station):
   divs = soup.findAll('div')
   currentdest = ""
@@ -97,6 +59,42 @@ def getStationTimes(soup, station):
       next
   return times
 
+def cleanString(mystr):
+  mystr = re.sub(r'\\\'', '\'', mystr)
+  mystr = re.sub(r'[-]', ' ', mystr)
+  mystr = re.sub(r'[ ][ ]+', ' ', mystr)
+  return unidecode(mystr)
+
+def searchNameInData(name, data):
+  return re.search(r'%s' % cleanString(name),
+      cleanString(data),
+      re.IGNORECASE)
+
+# Returns a hashtable of all the stations of the line in both directions
+def getAllStations(msg, transport, line):
+  page = getPage('/siv/schedule?stationname=*&reseau=%s&linecode=%s'
+      % (transport, line))
+  soup = bs4.BeautifulSoup(page)
+  stations = {}
+  directions = {}
+  links = soup.findAll('a')
+  for link in links:
+    if re.search(r'directionsens=', str(link)):
+      directions[cleanString(link.string)] = link['href']
+    elif re.search(r'stationid=', str(link)):
+      stations[cleanString(link.string)] = link['href']
+  if len(directions) > 0:
+    stations = {}
+    for name in directions:
+      msg.send_chn("%s: Direction: %s." % (msg.nick, name))
+      page = getPage("/siv/"+directions[name])
+      soup = bs4.BeautifulSoup(page)
+      links = soup.findAll('a')
+      for link in links:
+        if re.search(r'stationid=', str(link)):
+          stations[cleanString(link.string)] = link['href']
+  return stations
+
 
 
 def getNextStopsAtStation(transport, line, station):
@@ -104,25 +102,37 @@ def getNextStopsAtStation(transport, line, station):
   results = []
   for key, url in stations:
     if searchNameInData(station, key):
-      page = getInfoPage("/siv" + url)
+      page = getPage("/siv/"+url)
       soup = bs4.BeautifulSoup(page)
       results += getStationTimes(soup, key)
   return results
 
+
+
 def extractInformation(transport,
     line,
     station):
-  if station != "":
+  if station is not None and station != "":
     times = getNextStopsAtStation(transport, line, station)
+    stops = ""
     for time, direction, stationname in times:
-      print("Next %s %s at %s going to %s at %s" %
-          (transport, line, stationname, direction, time))
+      station = stationname
+      stops += time+" direction "+direction+"; "
+    if len(stops) > 0:
+      print("Prochains passages du %s ligne %s à l'arrêt %s: %s" %
+          (transport, line, stationname, stops))
+    else:
+      print("La station `%s' ne semble pas exister sur le %s ligne %s."
+          % (station, transport, line))
   else:
-    stations = getAllStations(transport, line)
+    stations = getAllStations(msg, transport, line)
     if len(stations) > 0:
+      s = ""
       for name in stations:
-        print("Station %s." % name)
+        s += name + "; "
+      print("Stations: %s." % (s))
       return 0
     else:
-      print("No station found.")
+      print("Aucune station trouvée.")
+
 

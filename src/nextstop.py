@@ -74,7 +74,8 @@ def main():
     if cause == "" or type_transp == "":
       printUsage(sys.argv[0])
       return 1
-    return ratp.getDisturbance(cause, type_transp)
+    print(ratp.getDisturbance(cause, type_transp))
+    return 0
   if type_transp == "" or line == "":
     printUsage(sys.argv[0])
     return 1

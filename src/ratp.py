@@ -108,6 +108,10 @@ def getDisturbance(cause, transport):
     page = getPage('/siv/perturbation?cause=%s&reseau=%s' % (cause, transport))
     soup = bs4.BeautifulSoup(page)
     content = soup.find_all('div', { "class" : "bg1" })
+    disturbances = ""
     for item in content:
+        if disturbances != "":
+            disturbances += "\n"
         item = str(item).replace('<br/>', ' ').replace('  ', ' ')
-        print(bs4.BeautifulSoup(item).get_text())
+        disturbances += (bs4.BeautifulSoup(item).get_text())
+    return disturbances

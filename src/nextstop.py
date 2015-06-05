@@ -34,19 +34,24 @@ def extractInformation(transport,
 
 
 def printUsage(name):
-  print("Usage: %s -t transport_type -l line [-s station] " % name)
+  print("Usage:\t%s -t transport_type -l line [-s station] " % name)
+  print("\t%s -a -t transport_type -c cause" % name)
+  print("\t-h: Display this help")
   print("\t-t transport_type: transportation type: bus, rer, tram, "
       + "noctilien, metro")
   print("\t-l line: line number or name. e.g.: 72, A, T3")
   print("\t-s station: optionnal: station for which to print the next stops")
+  print("\t-c cause: cause of the disturbance (alerte, travaux, or manif)")
+  print("\t-a: get alerts and transportation status (work on the line, manifestations)")
 
 def main():
   type_transp = ''
   line = ''
   station = ''
+  alert = False
 
   try:
-    opt, args = getopt.getopt(sys.argv[1:], "ht:l:s:", ["help"])
+    opt, args = getopt.getopt(sys.argv[1:], "aht:l:s:c:", ["help"])
   except getopt.GetoptError:
     printUsage(sys.argv[0])
     return 1
@@ -60,7 +65,16 @@ def main():
       line = val
     elif op == "-s":
       station = val
+    elif op == "-a":
+      alert = True
+    elif op == "-c":
+      cause = val
 
+  if alert:
+    if cause == "" or type_transp == "":
+      printUsage(sys.argv[0])
+      return 1
+    return ratp.getDisturbance(cause, type_transp)
   if type_transp == "" or line == "":
     printUsage(sys.argv[0])
     return 1

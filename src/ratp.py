@@ -94,8 +94,6 @@ def getAllStations(transport, line):
           stations[cleanString(link.string)] = link['href']
   return stations
 
-
-
 def getNextStopsAtStation(transport, line, station):
   stations = getAllStationsUrls(transport, line)
   results = []
@@ -105,3 +103,11 @@ def getNextStopsAtStation(transport, line, station):
       soup = bs4.BeautifulSoup(page)
       results += getStationTimes(soup, key)
   return results
+
+def getDisturbance(cause, transport):
+    page = getPage('/siv/perturbation?cause=%s&reseau=%s' % (cause, transport))
+    soup = bs4.BeautifulSoup(page)
+    content = soup.find_all('div', { "class" : "bg1" })
+    for item in content:
+        item = str(item).replace('<br/>', ' ').replace('  ', ' ')
+        print(bs4.BeautifulSoup(item).get_text())

@@ -105,6 +105,17 @@ def getNextStopsAtStation(transport, line, station):
   return results
 
 def getDisturbance(cause, transport):
+    if cause == '':
+        disturbance = ""
+        for cause in ("manif", "alerte", "travaux"):
+            if disturbance != "":
+                disturbance += "\n**"+cause+"\n"
+            disturbance += getDisturbanceFromCause(cause, transport)
+        return disturbance
+    else:
+        return getDisturbanceFromCause(cause, transport)
+
+def getDisturbanceFromCause(cause, transport):
     page = getPage('/siv/perturbation?cause=%s&reseau=%s' % (cause, transport))
     soup = bs4.BeautifulSoup(page)
     content = soup.find_all('div', { "class" : "bg1" })

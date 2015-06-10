@@ -49,6 +49,7 @@ def main():
   line = ''
   station = ''
   alert = False
+  cause = ''
 
   try:
     opt, args = getopt.getopt(sys.argv[1:], "aht:l:s:c:", ["help"])
@@ -71,7 +72,7 @@ def main():
       cause = val
 
   if alert:
-    if cause == "" or type_transp == "":
+    if type_transp == "" and cause == "":
       printUsage(sys.argv[0])
       return 1
     print(ratp.getDisturbance(cause, type_transp))

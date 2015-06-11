@@ -19,7 +19,7 @@ def getPage (page):
 # Returns a list of all the stations of the line in both directions
 def getAllStationsUrls(transport, line):
   page = getPage("/siv/schedule?stationname=*&reseau=%s&linecode=%s"
-      % (transport, line))
+      % (transport.lower(), line.lower()))
   soup = bs4.BeautifulSoup(page)
   stations = []
   directions = {}
@@ -73,7 +73,7 @@ def searchNameInData(name, data):
 # Returns a hashtable of all the stations of the line in both directions
 def getAllStations(transport, line):
   page = getPage('/siv/schedule?stationname=*&reseau=%s&linecode=%s'
-      % (transport, line))
+      % (transport.lower(), line))
   soup = bs4.BeautifulSoup(page)
   stations = {}
   directions = {}
@@ -84,14 +84,14 @@ def getAllStations(transport, line):
     elif re.search(r'stationid=', str(link)):
       stations[cleanString(link.string)] = link['href']
   if len(directions) > 0:
-    stations = {}
+    stations = []
     for name in directions:
       page = getPage("/siv/"+directions[name])
       soup = bs4.BeautifulSoup(page)
       links = soup.findAll('a')
       for link in links:
         if re.search(r'stationid=', str(link)):
-          stations[cleanString(link.string)] = link['href']
+          stations.append(cleanString(link.string))
   return stations
 
 def getNextStopsAtStation(transport, line, station):
@@ -110,10 +110,10 @@ def getDisturbance(cause, transport):
         for cause in ("manif", "alerte", "travaux"):
             if disturbance != "":
                 disturbance += "\n**"+cause+"\n"
-            disturbance += getDisturbanceFromCause(cause, transport)
+            disturbance += getDisturbanceFromCause(cause, transport.lower())
         return disturbance
     else:
-        return getDisturbanceFromCause(cause, transport)
+        return getDisturbanceFromCause(cause.lower(), transport.lower())
 
 def getDisturbanceFromCause(cause, transport):
     page = getPage('/siv/perturbation?cause=%s&reseau=%s' % (cause, transport))

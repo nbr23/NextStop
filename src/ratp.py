@@ -40,7 +40,7 @@ def getAllStationsUrls(transport, line):
           stations.append((cleanString(link.string), link['href']))
   return stations
 
-def getStationTimes(soup, station):
+def getStationTimes(soup, station, direction=None):
   divs = soup.findAll('div')
   currentdest = ""
   times = []
@@ -49,8 +49,13 @@ def getStationTimes(soup, station):
       cl = div['class'][0]
       if re.search(r'schmsg', cl):
         if div.b is not None:
-          times.append((cleanString(div.b.string),
-            cleanString(currentdest), station))
+          if direction:
+            if direction.lower() in cleanString(currentdest).lower():
+              times.append((cleanString(div.b.string),
+                  cleanString(currentdest), station))
+          else:
+            times.append((cleanString(div.b.string),
+              cleanString(currentdest), station))
       if re.search(r'bg', cl):
         m = re.search(r'([-_a-zA-Z-9]+[^>]*[-_a-zA-Z-9]+)', str(div.string))
         if m is not None:
@@ -94,14 +99,14 @@ def getAllStations(transport, line):
           stations.append(cleanString(link.string))
   return stations
 
-def getNextStopsAtStation(transport, line, station):
+def getNextStopsAtStation(transport, line, station, direction=None):
   stations = getAllStationsUrls(transport, line)
   results = []
   for key, url in stations:
     if searchNameInData(station, key):
       page = getPage("/siv/"+url)
       soup = bs4.BeautifulSoup(page)
-      results += getStationTimes(soup, key)
+      results += getStationTimes(soup, key, direction)
   return results
 
 def getDisturbance(cause, transport):

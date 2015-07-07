@@ -56,6 +56,8 @@ def getStationTimes(soup, station, direction=None):
           else:
             times.append((cleanString(div.b.string),
               cleanString(currentdest), station))
+      elif re.search('error', cl):
+          times.append((div.get_text(), None, station))
       if re.search(r'bg', cl):
         m = re.search(r'([-_a-zA-Z-9]+[^>]*[-_a-zA-Z-9]+)', str(div.string))
         if m is not None:

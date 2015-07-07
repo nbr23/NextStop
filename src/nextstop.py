@@ -13,7 +13,10 @@ def extractInformation(transport,
     stops = ""
     for time, direction, stationname in times:
       station = stationname
-      stops += ("\n—%s: %s direction %s;" % (station, time, direction))
+      if direction:
+        stops += ("\n—%s: %s direction %s;" % (station, time, direction))
+      else:
+        stops += ("\n—%s: %s;" % (station, time))
     if len(stops) > 0:
       print("Prochains passages du %s ligne %s à l'arrêt %s : %s" %
           (transport, line, stationname, stops))

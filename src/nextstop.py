@@ -23,16 +23,26 @@ def extractInformation(transport,
     else:
       print("La station `%s' ne semble pas exister sur le %s ligne %s."
           % (station, transport, line))
-  else:
+  elif line is not None:
     stations = ratp.getAllStations(transport, line)
     if len(stations) > 0:
       s = ""
       for name in stations:
-        s += "\n— " + name + " ;"
+          s += "\n— " + name + " ;"
       print("Stations : %s" % (s))
       return 0
     else:
-      print("Aucune station trouvée.")
+        print("Aucune station trouvée.")
+  else:
+      lines = ratp.getTransportLines(transport)
+      if len(lines) > 0:
+          s = ""
+          for name in lines:
+              s += "\n— " + name + " ;"
+          print("Lignes : %s" % s)
+          return 0
+      else:
+          print("Aucune ligne trouvée.")
 
 
 
@@ -50,7 +60,7 @@ def printUsage(name):
 
 def main():
   type_transp = ''
-  line = ''
+  line = None
   station = ''
   alert = False
   cause = ''
@@ -84,7 +94,7 @@ def main():
       return 1
     print(ratp.getDisturbance(cause, type_transp))
     return 0
-  if type_transp == "" or line == "":
+  if type_transp == "":
     printUsage(sys.argv[0])
     return 1
 

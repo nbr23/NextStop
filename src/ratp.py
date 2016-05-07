@@ -16,11 +16,22 @@ def getPage (page):
   conn.close()
   return data
 
+def getTransportLines(transport):
+  page = getPage("/siv/schedule?service=next&reseau=%s&linecode=*&referer=line"
+      % transport.lower())
+  soup = bs4.BeautifulSoup(page, "lxml")
+  links = soup.findAll('div', attrs={'class':'bg1'})
+  lines = []
+  for link in links:
+      if link.img and link.img['alt']:
+          lines.append(re.sub('[\[\]]', '', link.img['alt'].strip()))
+  return lines
+
 # Returns a list of all the stations of the line in both directions
 def getAllStationsUrls(transport, line):
   page = getPage("/siv/schedule?stationname=*&reseau=%s&linecode=%s"
       % (transport.lower(), line.lower()))
-  soup = bs4.BeautifulSoup(page)
+  soup = bs4.BeautifulSoup(page, "lxml")
   stations = []
   directions = {}
   links = soup.findAll('a')
@@ -33,7 +44,7 @@ def getAllStationsUrls(transport, line):
     stations = []
     for name in directions:
       page = getPage("/siv/"+directions[name])
-      soup = bs4.BeautifulSoup(page)
+      soup = bs4.BeautifulSoup(page, "lxml")
       links = soup.findAll('a')
       for link in links:
         if re.search(r'stationid=', str(link)):
@@ -81,7 +92,7 @@ def searchNameInData(name, data):
 def getAllStations(transport, line):
   page = getPage('/siv/schedule?stationname=*&reseau=%s&linecode=%s'
       % (transport.lower(), line))
-  soup = bs4.BeautifulSoup(page)
+  soup = bs4.BeautifulSoup(page, "lxml")
   stations = {}
   directions = {}
   links = soup.findAll('a')
@@ -94,7 +105,7 @@ def getAllStations(transport, line):
     stations = []
     for name in directions:
       page = getPage("/siv/"+directions[name])
-      soup = bs4.BeautifulSoup(page)
+      soup = bs4.BeautifulSoup(page, "lxml")
       links = soup.findAll('a')
       for link in links:
         if re.search(r'stationid=', str(link)):
@@ -107,7 +118,7 @@ def getNextStopsAtStation(transport, line, station, direction=None):
   for key, url in stations:
     if searchNameInData(station, key):
       page = getPage("/siv/"+url)
-      soup = bs4.BeautifulSoup(page)
+      soup = bs4.BeautifulSoup(page, "lxml")
       results += getStationTimes(soup, key, direction)
   return results
 
@@ -124,12 +135,12 @@ def getDisturbance(cause, transport):
 
 def getDisturbanceFromCause(cause, transport):
     page = getPage('/siv/perturbation?cause=%s&reseau=%s' % (cause, transport))
-    soup = bs4.BeautifulSoup(page)
+    soup = bs4.BeautifulSoup(page, "lxml")
     content = soup.find_all('div', { "class" : "bg1" })
     disturbances = ""
     for item in content:
         if disturbances != "":
             disturbances += "\n"
         item = str(item).replace('<br/>', ' ').replace('  ', ' ')
-        disturbances += (bs4.BeautifulSoup(item).get_text())
+        disturbances += (bs4.BeautifulSoup(item, "lxml").get_text())
     return disturbances

@@ -10,16 +10,16 @@ def extractInformation(transport,
     line,
     station, direction):
   if station is not None and station != "":
-    times = ratp.getNextStopsAtStation(transport, line, station, direction)
+    times = sorted(ratp.getNextStopsAtStation(transport, line, station, direction), key=lambda i: i[0])
     stops = ""
     for time, direction, stationname in times:
       station = stationname
       if direction:
-        stops += ("\n—%s: %s direction %s;" % (station, time, direction))
+        stops += ("\n— %s: %s direction %s;" % (station, time, direction))
       else:
-        stops += ("\n—%s: %s;" % (station, time))
+        stops += ("\n— %s: %s;" % (station, time))
     if len(stops) > 0:
-      print("Prochains passages du %s ligne %s à l'arrêt %s : %s" %
+      print("Prochains passages du %s ligne %s à l'arrêt %s :%s" %
           (transport, line, stationname, stops))
     else:
       print("La station `%s' ne semble pas exister sur le %s ligne %s."

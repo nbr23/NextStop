@@ -1,8 +1,9 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 
 import getopt
 import sys
-import ratp
+
+from . import ratp
 
 
 def extractInformation(transport,

@@ -10,40 +10,42 @@ def extractInformation(transport,
     line,
     station, direction):
   if station is not None and station != "":
-    times = sorted(ratp.getNextStopsAtStation(transport, line, station, direction), key=lambda i: i[0])
-    stops = ""
+    times = ratp.getNextStopsAtStation(transport, line, station, direction)
+    found = False
     for time, direction, stationname in times:
-      station = stationname
+      if not found:
+        found = True
+        print("Prochains passages du %s ligne %s à l'arrêt %s :" %
+              (transport, line, stationname))
       if direction:
-        stops += ("\n— %s: %s direction %s;" % (station, time, direction))
+        print("  —", time, "direction", direction, ";")
       else:
-        stops += ("\n— %s: %s;" % (station, time))
-    if len(stops) > 0:
-      print("Prochains passages du %s ligne %s à l'arrêt %s :%s" %
-          (transport, line, stationname, stops))
-    else:
+        print("  —", time, ";")
+    if not found:
       print("La station `%s' ne semble pas exister sur le %s ligne %s."
           % (station, transport, line))
+
   elif line is not None:
     stations = ratp.getAllStations(transport, line)
-    if len(stations) > 0:
-      s = ""
-      for name in stations:
-          s += "\n— " + name + " ;"
-      print("Stations : %s" % (s))
-      return 0
-    else:
-        print("Aucune station trouvée.")
+    found = False
+    for name in stations:
+      if not found:
+        found = True
+        print("Stations :")
+      print("  —", name, ";")
+    if not found:
+      print("Aucune station trouvée.")
+
   else:
-      lines = ratp.getTransportLines(transport)
-      if len(lines) > 0:
-          s = ""
-          for name in lines:
-              s += "\n— " + name + " ;"
-          print("Lignes : %s" % s)
-          return 0
-      else:
-          print("Aucune ligne trouvée.")
+    lines = ratp.getTransportLines(transport)
+    found = False
+    for name in lines:
+      if not found:
+        found = True
+        print("Lignes :")
+      print("  —", name, ";")
+    if not found:
+      print("Aucune ligne trouvée.")
 
 
 def main():
@@ -73,7 +75,9 @@ def main():
     if args.transport_type is None and args.cause is None:
       opts.print_help()
       return 1
-    print(ratp.getDisturbance(args.cause, args.transport_type))
+    else:
+      for d in ratp.getDisturbance(args.cause, args.transport_type):
+        print(d)
     return 0
   if args.transport_type is None:
     opts.print_help()

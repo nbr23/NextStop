@@ -33,4 +33,8 @@ setup(
     packages=[
         'nextstop',
     ],
+
+    scripts=[
+        'bin/nextstop',
+    ],
 )

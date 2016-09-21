@@ -1,3 +1,4 @@
+import json
 import re
 import http.cookiejar, urllib.request
 import bs4
@@ -126,3 +127,12 @@ def getDisturbanceFromCause(cause, transport):
     for item in content:
         item = str(item).replace('<br/>', ' ').replace('  ', ' ')
         yield bs4.BeautifulSoup(item, "html.parser").get_text()
+
+def getDisturbanceFromLine(transport, line):
+    conn = http.client.HTTPConnection("www.ratp.fr", timeout=5)
+    conn.request("GET", "/meteo/ajax/data")
+    res = conn.getresponse()
+    val = json.loads(res.read().decode())
+    conn.close()
+
+    return val['status'][transport]['lines'][line]

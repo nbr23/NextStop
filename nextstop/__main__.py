@@ -72,7 +72,13 @@ def main():
   args = opts.parse_args()
 
   if args.alert:
-    if args.transport_type is None and args.cause is None:
+    if args.transport_type and args.line:
+      d = ratp.getDisturbanceFromLine(args.transport_type, args.line)
+      if "date" in d and d["date"] is not None:
+        print("Au {date[date]}, {title}: {message}".format(**d))
+      else:
+        print("{title}: {message}".format(**d))
+    elif args.transport_type is None and args.cause is None:
       opts.print_help()
       return 1
     else:

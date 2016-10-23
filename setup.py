@@ -11,7 +11,7 @@ setup(
     description = "Retrieve information about the next stops of French RATP services",
 
     author = 'nbr23',
-    author_email = 'python@23.tf',
+    author_email = 'nextstop@23.tf',
 
     url = 'https://github.com/nbr23/NextStop',
 
